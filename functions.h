@@ -6,7 +6,6 @@
 // -1 - primeira data maior que a segunda
 // 0 - datas iguais
 // 1 - segunda data maior que a primeira
-// 2 - datas iguais, mas apenas hora ou minuto é diferente
 int compararDataHora(Data dataHora1, Data dataHora2) {
     if (dataHora1.ano != dataHora2.ano) {
         return (dataHora1.ano < dataHora2.ano) ? -1 : 1; 
@@ -32,8 +31,7 @@ Evento *inserirEvento(Evento *raiz, Evento *novoEvento) {
 
     int comparacao = compararDataHora(novoEvento->dataEvento, raiz->dataEvento);
 
-    if (comparacao == 0 || comparacao == 2) {
-        // Datas iguais ou datas iguais, mas apenas hora ou minuto é diferente,
+    if (comparacao == 0) {
         // inserir à esquerda para manter a ordem crescente.
         raiz->esquerda = inserirEvento(raiz->esquerda, novoEvento);
     } else if (comparacao < 0) {
@@ -102,14 +100,14 @@ Evento *buscarEvento(Evento* raiz, int dia, int mes, int ano, int hora, int minu
 
 void consultarEventoData(Evento *raiz) {
     int dia, mes, ano;
-    printf("Digite p dia do evento: ");
+    printf("Digite o dia do evento (dd): ");
     scanf("%d", &dia);
-    printf("Digite o mês do evento: ");
+    printf("Digite o mês do evento (mm): ");
     scanf("%d", &mes);
-    printf("Digite o ano do evento: ");
+    printf("Digite o ano do evento (aaaa): ");
     scanf("%d", &ano);
 
-    // Buscar compromissos na data especificada
+    // Busca eventos na data especificada
     Evento* atual = raiz;
     int encontrou = 0;
 
@@ -130,7 +128,7 @@ void consultarEventoData(Evento *raiz) {
     }
 }
     if (!encontrou) {
-        printf("Agenda vazia ou não foram encontrados compromissos para a data especificada.\n");
+        printf("Agenda vazia ou não foram encontrados eventos para a data especificada.\n");
     }
 }
 
@@ -147,7 +145,7 @@ void consultarEventoDataHora(Evento *raiz) {
     printf("Digite o minuto do evento: ");
     scanf("%d", &minuto);
 
-    // Buscar evento na data e hora especificadas
+    // Busca evento na data e hora especificadas
     Evento* evento = buscarEvento(raiz, dia, mes, ano, hora, minuto);
 
     if (evento != NULL) {
@@ -161,7 +159,7 @@ void consultarEventoDataHora(Evento *raiz) {
     }
 }
 
-Evento* encontrarMenorEvento(Evento** raiz) {
+Evento *encontrarMenorEvento(Evento **raiz) {
     if ((*raiz)->esquerda == NULL) {
         Evento* temp = *raiz;
         *raiz = (*raiz)->direita;
@@ -198,7 +196,7 @@ Evento* removerEventoAux(Evento* evento) {
     }
 }
 
-Evento* removerEvento(Evento** raiz) {
+Evento* removerEvento(Evento **raiz) {
     int dia, mes, ano, hora, minuto;
     printf("Digite o dia do evento a ser removido (dd): ");
     scanf("%d", &dia);
@@ -214,7 +212,7 @@ Evento* removerEvento(Evento** raiz) {
     Evento* pai = NULL;
     Evento* atual = *raiz;
 
-    // Encontrar o evento a ser removido e seu nó pai
+    // Encontra o evento a ser removido e seu nó pai
     while (atual != NULL) {
         if (atual->dataEvento.ano == ano && atual->dataEvento.mes == mes && atual->dataEvento.dia == dia &&
             atual->dataEvento.hora == hora && atual->dataEvento.minuto == minuto) {
@@ -238,7 +236,7 @@ Evento* removerEvento(Evento** raiz) {
             pai->direita = removerEventoAux(atual);
         }
     } else {
-        printf("Compromisso não encontrado.\n");
+        printf("Evento não encontrado.\n");
     }
 
     return *raiz;
