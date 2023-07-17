@@ -2,7 +2,8 @@
 #include "functions.h"
 
 int main() {
-    int opcao;
+    int opcao, dia, mes, ano, hora, minuto;
+    Evento *raiz = NULL;
 
     do {
         printf("\n========== MENU ==========\n");
@@ -18,26 +19,25 @@ int main() {
 
         switch (opcao) {
             case 0:
-                liberarAgenda();
                 printf("Encerrando o programa.\n");
                 break;
             case 1:
-                incluirCompromisso();
+                raiz = criarEvento(raiz);
                 break;
             case 2:
-                consultarCompromissoData();
+                consultarEventoData(raiz);
                 break;
             case 3:
-                consultarCompromissoDataHora();
+                consultarEventoDataHora(raiz);
                 break;
             case 4:
-                alterarCompromisso();
+                alterarEvento(raiz);
                 break;
             case 5:
-                excluirCompromisso();
+                removerEvento(raiz);
                 break;
             case 6:
-                listarCompromissos();
+                listarEventos(raiz);
                 break;
             default:
                 printf("Opção inválida.\n");
