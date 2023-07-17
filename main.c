@@ -2,17 +2,16 @@
 #include "functions.h"
 
 int main() {
-    int opcao, dia, mes, ano, hora, minuto;
+    int opcao, opcaoConsulta, dia, mes, ano, hora, minuto;
     Evento *raiz = NULL;
 
     do {
         printf("\n========== MENU ==========\n");
-        printf("1. Incluir compromisso\n");
-        printf("2. Consultar compromisso por data\n");
-        printf("3. Consultar compromisso por data e hora\n");
-        printf("4. Alterar compromisso\n");
-        printf("5. Excluir compromisso\n");
-        printf("6. Listar todos os compromissos\n");
+        printf("1. Incluir evento\n");
+        printf("2. Consultar evento\n");
+        printf("3. Alterar evento\n");
+        printf("4. Excluir evento\n");
+        printf("5. Listar todos os eventos\n");
         printf("0. Sair\n");
         printf("Digite sua opção: ");
         scanf("%d", &opcao);
@@ -25,18 +24,23 @@ int main() {
                 raiz = criarEvento(raiz);
                 break;
             case 2:
-                consultarEventoData(raiz);
+                printf("Deseja consultar por:\n");
+                printf("1. Data\n");
+                printf("2. Data e hora\n");
+                scanf("%d", &opcaoConsulta);
+                if(opcaoConsulta == 1){
+                    consultarEventoData(raiz);
+                } else if(opcaoConsulta == 2){
+                    consultarEventoDataHora(raiz);
+                }
                 break;
             case 3:
-                consultarEventoDataHora(raiz);
-                break;
-            case 4:
                 alterarEvento(raiz);
                 break;
-            case 5:
+            case 4:
                 removerEvento(raiz);
                 break;
-            case 6:
+            case 5:
                 listarEventos(raiz);
                 break;
             default:
