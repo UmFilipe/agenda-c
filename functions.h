@@ -53,7 +53,7 @@ Evento *criarEvento(Evento *raiz) {
         atual = (compararDataHora(novoEvento->dataEvento, atual->dataEvento) < 0) ? atual->esquerda : atual->direita;
     }
     int dia, mes, ano, hora, minuto;
-    printf("Digite o dia do evenot a ser criado (dd): ");
+    printf("Digite o dia do evento a ser criado (dd): ");
     scanf("%d", &(novoEvento->dataEvento.dia));
     printf("Digite o mês do evento a ser criado (mm): ");
     scanf("%d", &(novoEvento->dataEvento.mes));
@@ -163,7 +163,7 @@ Evento* encontrarMenor(Evento *raiz) {
 
 Evento* removerEvento(Evento *raiz) {
     int dia, mes, ano, hora, minuto;
-    printf("Digite o dia do evenot a ser removido (dd): ");
+    printf("Digite o dia do evento a ser removido (dd): ");
     scanf("%d", &dia);
     printf("Digite o mês do evento a ser removido (mm): ");
     scanf("%d", &mes);
