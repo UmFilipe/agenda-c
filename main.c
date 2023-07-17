@@ -2,7 +2,7 @@
 #include "functions.h"
 
 int main() {
-    int opcao, opcaoConsulta, dia, mes, ano, hora, minuto;
+    int opcao, opcaoConsulta;
     Evento *raiz = NULL;
 
     do {
