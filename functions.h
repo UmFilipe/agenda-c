@@ -6,6 +6,7 @@
 // -1 - primeira data maior que a segunda
 // 0 - datas iguais
 // 1 - segunda data maior que a primeira
+// 2 - datas iguais, mas apenas hora ou minuto é diferente
 int compararDataHora(Data dataHora1, Data dataHora2) {
     if (dataHora1.ano != dataHora2.ano) {
         return (dataHora1.ano < dataHora2.ano) ? -1 : 1; 
@@ -22,13 +23,20 @@ int compararDataHora(Data dataHora1, Data dataHora2) {
     }
 }
 
+
 // Inserir evento criado no local certo na árvore
 Evento *inserirEvento(Evento *raiz, Evento *novoEvento) {
     if (raiz == NULL) {
         return novoEvento;
     }
 
-    if (compararDataHora(novoEvento->dataEvento, raiz->dataEvento) < 0) {
+    int comparacao = compararDataHora(novoEvento->dataEvento, raiz->dataEvento);
+
+    if (comparacao == 0 || comparacao == 2) {
+        // Datas iguais ou datas iguais, mas apenas hora ou minuto é diferente,
+        // inserir à esquerda para manter a ordem crescente.
+        raiz->esquerda = inserirEvento(raiz->esquerda, novoEvento);
+    } else if (comparacao < 0) {
         raiz->esquerda = inserirEvento(raiz->esquerda, novoEvento);
     } else {
         raiz->direita = inserirEvento(raiz->direita, novoEvento);
@@ -36,6 +44,7 @@ Evento *inserirEvento(Evento *raiz, Evento *novoEvento) {
 
     return raiz;
 }
+
 
 Evento *criarEvento(Evento *raiz) {
     Evento *novoEvento = (Evento*)malloc(sizeof(Evento));
@@ -105,22 +114,21 @@ void consultarEventoData(Evento *raiz) {
     int encontrou = 0;
 
     while (atual != NULL) {
-        if (atual->dataEvento.dia == dia && atual->dataEvento.mes == mes && atual->dataEvento.ano == ano) {
-            printf("Código: %d\n", atual->codigo);
-            printf("Data: %02d/%02d/%04d\n", atual->dataEvento.dia, atual->dataEvento.mes, atual->dataEvento.ano);
-            printf("Hora: %02d:%02d\n", atual->dataEvento.hora, atual->dataEvento.minuto);
-            printf("Duração: %.2f horas\n", atual->duracao);
-            printf("Descrição: %s\n\n", atual->descricao);
-            encontrou = 1;
-        }
-
-        if (atual->codigo >= dia) {
-            atual = atual->esquerda;
-        } else {
-            atual = atual->direita;
-        }
+    if (atual->dataEvento.dia == dia && atual->dataEvento.mes == mes && atual->dataEvento.ano == ano) {
+        printf("Código: %d\n", atual->codigo);
+        printf("Data: %02d/%02d/%04d\n", atual->dataEvento.dia, atual->dataEvento.mes, atual->dataEvento.ano);
+        printf("Hora: %02d:%02d\n", atual->dataEvento.hora, atual->dataEvento.minuto);
+        printf("Duração: %.2f horas\n", atual->duracao);
+        printf("Descrição: %s\n\n", atual->descricao);
+        encontrou = 1;
     }
 
+    if (atual->dataEvento.ano >= ano && atual->dataEvento.mes >= mes && atual->dataEvento.dia >= dia) {
+        atual = atual->esquerda;
+    } else {
+        atual = atual->direita;
+    }
+}
     if (!encontrou) {
         printf("Agenda vazia ou não foram encontrados compromissos para a data especificada.\n");
     }
@@ -153,13 +161,44 @@ void consultarEventoDataHora(Evento *raiz) {
     }
 }
 
-Evento* encontrarMenor(Evento **raiz) {
-    if ((*raiz)->esquerda == NULL)
-        return *raiz;
-    return encontrarMenor(&(*raiz)->esquerda);
+Evento* encontrarMenorEvento(Evento** raiz) {
+    if ((*raiz)->esquerda == NULL) {
+        Evento* temp = *raiz;
+        *raiz = (*raiz)->direita;
+        return temp;
+    }
+    return encontrarMenorEvento(&(*raiz)->esquerda);
 }
 
-Evento* removerEvento(Evento **raiz) {
+Evento* removerEventoAux(Evento* evento) {
+    // Remoção de nó sem filhos
+    if (evento->esquerda == NULL && evento->direita == NULL) {
+        free(evento);
+        return NULL;
+    }
+    // Remoção de nó com apenas um filho
+    else if (evento->esquerda == NULL) {
+        Evento* temp = evento->direita;
+        free(evento);
+        return temp;
+    } else if (evento->direita == NULL) {
+        Evento* temp = evento->esquerda;
+        free(evento);
+        return temp;
+    }
+    // Remoçãod de nó com dois filhos
+    else {
+        Evento* temp = encontrarMenorEvento(&evento->direita);
+        evento->codigo = temp->codigo;
+        evento->dataEvento = temp->dataEvento;
+        evento->duracao = temp->duracao;
+        strcpy(evento->descricao, temp->descricao);
+        evento->direita = removerEventoAux(evento->direita);
+        return evento;
+    }
+}
+
+Evento* removerEvento(Evento** raiz) {
     int dia, mes, ano, hora, minuto;
     printf("Digite o dia do evento a ser removido (dd): ");
     scanf("%d", &dia);
@@ -172,32 +211,31 @@ Evento* removerEvento(Evento **raiz) {
     printf("Digite o minuto do evento a ser removido (mm): ");
     scanf("%d", &minuto);
 
-    Evento* evento = buscarEvento(*raiz, dia, mes, ano, hora, minuto);
+    Evento* pai = NULL;
+    Evento* atual = *raiz;
 
-    if (evento != NULL) {
-        // Caso 1: nó folha
-        if (evento->esquerda == NULL && evento->direita == NULL) {
-            free(evento);
-            *raiz = NULL;
+    // Encontrar o evento a ser removido e seu nó pai
+    while (atual != NULL) {
+        if (atual->dataEvento.ano == ano && atual->dataEvento.mes == mes && atual->dataEvento.dia == dia &&
+            atual->dataEvento.hora == hora && atual->dataEvento.minuto == minuto) {
+            break;
         }
-        // Caso 2: nó com apenas um filho
-        else if (evento->esquerda == NULL) {
-            Evento* temp = evento->direita;
-            free(evento);
-            *raiz = temp;
-        } else if (evento->direita == NULL) {
-            Evento* temp = evento->esquerda;
-            free(evento);
-            *raiz = temp;
+        pai = atual;
+        if (atual->dataEvento.ano >= ano && atual->dataEvento.mes >= mes && atual->dataEvento.dia >= dia &&
+            atual->dataEvento.hora >= hora && atual->dataEvento.minuto >= minuto) {
+            atual = atual->esquerda;
+        } else {
+            atual = atual->direita;
         }
-        // Caso 3: nó com dois filhos
-        else {
-            Evento* temp = encontrarMenor(&evento->direita);
-            evento->codigo = temp->codigo;
-            evento->dataEvento = temp->dataEvento;
-            evento->duracao = temp->duracao;
-            strcpy(evento->descricao, temp->descricao);
-            removerEvento(&evento->direita); // Chamar a remoção no ramo direito do evento
+    }
+
+    if (atual != NULL) {
+        if (pai == NULL) {
+            *raiz = removerEventoAux(atual);
+        } else if (pai->esquerda == atual) {
+            pai->esquerda = removerEventoAux(atual);
+        } else {
+            pai->direita = removerEventoAux(atual);
         }
     } else {
         printf("Compromisso não encontrado.\n");
@@ -206,8 +244,12 @@ Evento* removerEvento(Evento **raiz) {
     return *raiz;
 }
 
-void alterarEvento(Evento *raiz) {
-    int dia, mes, ano, hora, minuto;
+
+void alterarEvento(Evento* raiz) {
+    int dia, mes, ano, hora, minuto, diaEdicao, mesEdicao, anoEdicao, horaEdicao, minutoEdicao;
+    char descricaoEdicao[100];
+    float duracaoEdicao;
+    
     printf("Digite o dia do evento: ");
     scanf("%d", &dia);
     printf("Digite o mês do evento: ");
@@ -222,30 +264,65 @@ void alterarEvento(Evento *raiz) {
     Evento* evento = buscarEvento(raiz, dia, mes, ano, hora, minuto);
 
     if (evento != NULL) {
-        printf("Digite a nova descrição do evento: ");
-        scanf(" %[^\n]s", evento->descricao);
-        printf("Digite a nova duração do evento (em horas): ");
-        scanf("%f", &(evento->duracao));
-        printf("Compromisso alterado com sucesso!\n");
+        printf("Digite o novo dia do evento (digite -1 caso queira manter igual): ");
+        scanf("%d", &diaEdicao);
+        printf("Digite o novo mês do evento (digite -1 caso queira manter igual): ");
+        scanf("%d", &mesEdicao);
+        printf("Digite o novo ano do evento (digite -1 caso queira manter igual): ");
+        scanf("%d", &anoEdicao);
+        printf("Digite a nova hora do evento (digite -1 caso queira manter igual): ");
+        scanf("%d", &horaEdicao);
+        printf("Digite o novo minuto do evento (digite -1 caso queira manter igual): ");
+        scanf("%d", &minutoEdicao);
+        printf("Digite a nova descrição do evento (digite -1 caso queira manter igual): ");
+        scanf(" %[^\n]s", descricaoEdicao);
+        printf("Digite a nova duração do evento (digite -1 caso queira manter igual): ");
+        scanf("%f", &duracaoEdicao);
+
+        if (diaEdicao != -1) {
+            evento->dataEvento.dia = diaEdicao;
+        }
+        if (mesEdicao != -1) {
+            evento->dataEvento.mes = mesEdicao;
+        }
+        if (anoEdicao != -1) {
+            evento->dataEvento.ano = anoEdicao;
+        }
+        if (horaEdicao != -1) {
+            evento->dataEvento.hora = horaEdicao;
+        }
+        if (minutoEdicao != -1) {
+            evento->dataEvento.minuto = minutoEdicao;
+        }
+        if (strcmp(descricaoEdicao, "-1") != 0) {
+            strcpy(evento->descricao, descricaoEdicao);
+        }
+        if (duracaoEdicao != -1) {
+            evento->duracao = duracaoEdicao;
+        }
+
+        printf("Evento alterado com sucesso!\n");
     } else {
-        printf("Compromisso não encontrado.\n");
+        printf("Evento não encontrado.\n");
     }
 }
+
 
 void listarEventos(Evento *raiz) {
     if (raiz == NULL) {
         printf("Agenda vazia.\n");
     } else {
+        if (raiz->esquerda != NULL) {
+            listarEventos(raiz->esquerda);
+        }
+
         printf("Código: %d\n", raiz->codigo);
         printf("Data: %02d/%02d/%04d\n", raiz->dataEvento.dia, raiz->dataEvento.mes, raiz->dataEvento.ano);
         printf("Hora: %02d:%02d\n", raiz->dataEvento.hora, raiz->dataEvento.minuto);
         printf("Duração: %.2f horas\n", raiz->duracao);
         printf("Descrição: %s\n\n", raiz->descricao);
-        
-        if(raiz->esquerda != NULL){
-            listarEventos(raiz->esquerda);
-        }
-        if(raiz->direita != NULL){
+
+        if (raiz->direita != NULL) {
             listarEventos(raiz->direita);
         }
     }
