@@ -27,6 +27,7 @@ int main() {
                 printf("Deseja consultar por:\n");
                 printf("1. Data\n");
                 printf("2. Data e hora\n");
+                printf("Digite uma opção: ");
                 scanf("%d", &opcaoConsulta);
                 if(opcaoConsulta == 1){
                     consultarEventoData(raiz);
