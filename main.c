@@ -38,7 +38,7 @@ int main() {
                 alterarEvento(raiz);
                 break;
             case 4:
-                removerEvento(raiz);
+                raiz = removerEvento(&raiz);
                 break;
             case 5:
                 listarEventos(raiz);

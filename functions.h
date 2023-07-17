@@ -128,12 +128,12 @@ void consultarEventoData(Evento *raiz) {
 
 void consultarEventoDataHora(Evento *raiz) {
     int dia, mes, ano, hora, minuto;
-    printf("Digite o ano do evento: ");
-    scanf("%d", &ano);
-    printf("Digite o mês do evento: ");
-    scanf("%d", &mes);
     printf("Digite o dia do evento: ");
     scanf("%d", &dia);
+    printf("Digite o mês do evento: ");
+    scanf("%d", &mes);
+    printf("Digite o ano do evento: ");
+    scanf("%d", &ano);
     printf("Digite a hora do evento: ");
     scanf("%d", &hora);
     printf("Digite o minuto do evento: ");
@@ -153,15 +153,13 @@ void consultarEventoDataHora(Evento *raiz) {
     }
 }
 
-Evento* encontrarMenor(Evento *raiz) {
-    if (raiz == NULL)
-        return NULL;
-    while (raiz->esquerda != NULL)
-        raiz = raiz->esquerda;
-    return raiz;
+Evento* encontrarMenor(Evento **raiz) {
+    if ((*raiz)->esquerda == NULL)
+        return *raiz;
+    return encontrarMenor(&(*raiz)->esquerda);
 }
 
-Evento* removerEvento(Evento *raiz) {
+Evento* removerEvento(Evento **raiz) {
     int dia, mes, ano, hora, minuto;
     printf("Digite o dia do evento a ser removido (dd): ");
     scanf("%d", &dia);
@@ -174,39 +172,38 @@ Evento* removerEvento(Evento *raiz) {
     printf("Digite o minuto do evento a ser removido (mm): ");
     scanf("%d", &minuto);
 
-
-    Evento* evento = buscarEvento(raiz, dia, mes, ano, hora, minuto);
+    Evento* evento = buscarEvento(*raiz, dia, mes, ano, hora, minuto);
 
     if (evento != NULL) {
         // Caso 1: nó folha
         if (evento->esquerda == NULL && evento->direita == NULL) {
             free(evento);
-            return NULL;
+            *raiz = NULL;
         }
-
         // Caso 2: nó com apenas um filho
-        if (evento->esquerda == NULL) {
-            Evento *temp = evento->direita;
+        else if (evento->esquerda == NULL) {
+            Evento* temp = evento->direita;
             free(evento);
-            return temp;
+            *raiz = temp;
         } else if (evento->direita == NULL) {
-            Evento *temp = evento->esquerda;
+            Evento* temp = evento->esquerda;
             free(evento);
-            return temp;
+            *raiz = temp;
         }
-
         // Caso 3: nó com dois filhos
-        Evento *temp = encontrarMenor(evento->direita);
-        evento->codigo = temp->codigo;
-        evento->dataEvento = temp->dataEvento;
-        evento->duracao = temp->duracao;
-        strcpy(evento->descricao, temp->descricao);
-        evento->direita = removerEvento(evento->direita);
+        else {
+            Evento* temp = encontrarMenor(&evento->direita);
+            evento->codigo = temp->codigo;
+            evento->dataEvento = temp->dataEvento;
+            evento->duracao = temp->duracao;
+            strcpy(evento->descricao, temp->descricao);
+            removerEvento(&evento->direita); // Chamar a remoção no ramo direito do evento
+        }
     } else {
         printf("Compromisso não encontrado.\n");
     }
 
-    return raiz;
+    return *raiz;
 }
 
 void alterarEvento(Evento *raiz) {
